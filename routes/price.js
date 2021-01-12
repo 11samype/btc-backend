@@ -9,12 +9,14 @@ router.get('/', function(req, res, next) {
     // check cache
     let key = '__express__' + req.originalUrl || req.url;
     let cachedBody = mcache.get(key);
-    if (cachedBody) {
+    var currency = req.query.currency;
+    var source = req.query.source;
+    if (source === 'coinmarketcap' && cachedBody) {
         console.log(`Cache hit: ${cachedBody}`);
         res.send(cachedBody);
     } else {
-        var currency = req.query.currency;
-        var source = req.query.source;
+        // var currency = req.query.currency;
+        // var source = req.query.source;
 
         var url = '';
         var headers = {};
