@@ -11,7 +11,7 @@ router.get('/', function(req, res, next) {
     let cachedBody = mcache.get(key);
     var currency = req.query.currency;
     var source = req.query.source;
-    if (source === 'coinmarketcap' && cachedBody) {
+    if (cachedBody) {
         console.log(`Cache hit: ${cachedBody}`);
         res.send(cachedBody);
     } else {
@@ -72,7 +72,8 @@ router.get('/', function(req, res, next) {
                 }
                 
                 var formattedResponse = {price: Math.round(btcPrice * 100) / 100};
-                mcache.put(key, formattedResponse, 1 * 60 * 1000); // 1 minutes
+                var cacheTime = source === 'coinmarketcap' ? 1 * 60 * 1000 : 5 * 1000; // 1 minute for coinmarketcap, 5 seconds everything else
+                mcache.put(key, formattedResponse, cacheTime);
                 console.log(`Cache Miss`);
                 res.send(formattedResponse);
             } else {
