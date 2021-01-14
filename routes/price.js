@@ -11,6 +11,7 @@ router.get('/', function(req, res, next) {
     let cachedBody = mcache.get(key);
     var currency = req.query.currency;
     var source = req.query.source;
+    var apikey = req.query.apikey;
     if (cachedBody) {
         console.log(`Cache hit: ${cachedBody}`);
         res.send(cachedBody);
@@ -27,7 +28,7 @@ router.get('/', function(req, res, next) {
                 break;
             case 'coinmarketcap':
                 url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=' + currency;
-                headers = {'X-CMC_PRO_API_KEY': '842053ca-84bd-4d71-9658-9d309edd3b43'};
+                headers = {'X-CMC_PRO_API_KEY': apikey || '842053ca-84bd-4d71-9658-9d309edd3b43'};
                 break;
             case 'coingecko':
                 url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=' + currency;
