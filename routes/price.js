@@ -12,32 +12,32 @@ router.get('/', function(req, res, next) {
     var currency = req.query.currency;
     var source = req.query.source;
     var apikey = req.query.apikey;
+    var crypto = req.query.crypto || 'btc';
     if (cachedBody) {
         console.log(`Cache hit: ${cachedBody}`);
         res.send(cachedBody);
     } else {
-        // var currency = req.query.currency;
-        // var source = req.query.source;
 
         var url = '';
         var headers = {};
 
         switch (source) {
             case 'coinbase':
-                url = 'https://api.coinbase.com/v2/prices/spot?currency=' + currency;
+                url = 'https://api.coinbase.com/v2/prices/' + crypto + '-' + currency + '/spot';
                 break;
             case 'coinmarketcap':
-                url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=' + currency;
+                url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=' + crypto.toUpperCase() + '&convert=' + currency;
                 headers = {'X-CMC_PRO_API_KEY': apikey || '842053ca-84bd-4d71-9658-9d309edd3b43'};
                 break;
             case 'coingecko':
-                url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=' + currency;
+                url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=' + currency;
                 break;
             case 'kraken':
-                url = 'https://api.kraken.com/0/public/Ticker?pair=XBT' + currency;
+                var krakenCrypto = crypto.toUpperCase() == "BTC" ? "XBT" : "ETH";
+                url = 'https://api.kraken.com/0/public/Ticker?pair=' + krakenCrypto + currency;
                 break;
             case 'bitstamp':
-                url = 'https://www.bitstamp.net/api/v2/ticker/btc' + currency;
+                url = 'https://www.bitstamp.net/api/v2/ticker/' + crypto.toLowerCase() + currency.toLowerCase();
                 break;
             default:
                 break;
@@ -57,16 +57,18 @@ router.get('/', function(req, res, next) {
                         btcPrice = jsonBody.data.amount;
                         break;
                     case 'coinmarketcap':
-                        btcPrice = jsonBody.data.BTC.quote[currency.toUpperCase()].price;
+                        btcPrice = jsonBody.data[crypto.toUpperCase()].quote[currency.toUpperCase()].price;
                         break;
                     case 'bitstamp':
                         btcPrice = jsonBody.last;
                         break;
                     case 'kraken':
-                        btcPrice = jsonBody.result[`XXBTZ${currency.toUpperCase()}`].c[0];
+                        var krakenCrypto = crypto.toUpperCase() == "BTC" ? "XBT" : "ETH";
+                        btcPrice = jsonBody.result[`X${krakenCrypto}Z${currency.toUpperCase()}`].c[0];
                         break;
                     case 'coingecko':
-                        btcPrice = jsonBody.bitcoin[currency.toLowerCase()];
+                        var geckoCrypto = crypto.toUpperCase() == "BTC" ? "bitcoin" : "ethereum";
+                        btcPrice = jsonBody[geckoCrypto][currency.toLowerCase()];
                         break;
                     default:
                         break;
