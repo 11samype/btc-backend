@@ -1,9 +1,8 @@
-var request = require('request');
 var mcache = require('memory-cache');
 var express = require('express');
 var router = express.Router();
 
-router.get('/', function(req, res, next) {
+router.get('/', async function(req, res, next) {
 
     // check cache
     let key = '__express__' + req.originalUrl || req.url;
@@ -43,14 +42,14 @@ router.get('/', function(req, res, next) {
         }
 
         var options = {
-            url: url,
             headers: headers
         }
 
-        request(options, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
+        try {
+            const response = await fetch(url, options);
+            if (response.ok) {
+                const jsonBody = await response.json();
                 var btcPrice = 0;
-                const jsonBody = JSON.parse(body);
                 switch (source) {
                     case 'coinbase':
                         btcPrice = jsonBody.data.amount;
@@ -76,12 +75,18 @@ router.get('/', function(req, res, next) {
                 var formattedResponse = {price: Math.round(btcPrice * 100) / 100};
                 var cacheTime = source === 'coinmarketcap' ? 1 * 60 * 1000 : 5 * 1000; // 1 minute for coinmarketcap, 5 seconds everything else
                 mcache.put(key, formattedResponse, cacheTime);
-                console.log(`Cache Miss`);
+                console.debug(`Cache Miss`);
                 res.send(formattedResponse);
             } else {
-                res.status(500).send({error: 'Error with API :('});
+                console.error(`Error fetching data from ${source}:`, response.statusText);
+                res.status(response.status).send({error: 'Failed to fetch data from source'});
             }
-        });
+            
+        } catch (error) {
+            console.error('Error constructing request options:', error);
+            res.status(500).send({error: 'Internal server error'});
+            return;
+        }
     }
 
 });
