@@ -7,7 +7,7 @@
     "debug": "DEBUG=btc-backend:* npm start"
   },
   "dependencies": {
-    "cookie-parser": "^1.4.5",
+    "cookie-parser": "^1.4.7",
     "debug": "~2.6.9",
     "express": "^4.21.2",
     "memory-cache": "^0.2.0",
